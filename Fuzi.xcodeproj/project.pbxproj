@@ -15,6 +15,9 @@
 		0C354AA21D9633720005B0AD /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C354A991D9633720005B0AD /* Node.swift */; };
 		0C354AA31D9633720005B0AD /* NodeSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C354A9A1D9633720005B0AD /* NodeSet.swift */; };
 		0C354AA41D9633720005B0AD /* Queryable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C354A9B1D9633720005B0AD /* Queryable.swift */; };
+		473FD40624EF10A700B8A7A0 /* Filterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473FD40524EF10A700B8A7A0 /* Filterable.swift */; };
+		473FD40824EF1B8700B8A7A0 /* filterable.html in Resources */ = {isa = PBXBuildFile; fileRef = 473FD40724EF1B8700B8A7A0 /* filterable.html */; };
+		473FD40A24EF1BD000B8A7A0 /* FilterableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473FD40924EF1BD000B8A7A0 /* FilterableTests.swift */; };
 		792500BC1BA6CFBB0011671B /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792500AB1BA6CF6B0011671B /* Fuzi.framework */; };
 		792500C81BA6D06B0011671B /* AtomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799F461B1B90479F00E4CE2C /* AtomTests.swift */; };
 		792500C91BA6D06E0011671B /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799F46271B904CE500E4CE2C /* XMLTests.swift */; };
@@ -50,6 +53,9 @@
 		0C354A991D9633720005B0AD /* Node.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		0C354A9A1D9633720005B0AD /* NodeSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NodeSet.swift; sourceTree = "<group>"; };
 		0C354A9B1D9633720005B0AD /* Queryable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queryable.swift; sourceTree = "<group>"; };
+		473FD40524EF10A700B8A7A0 /* Filterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filterable.swift; sourceTree = "<group>"; };
+		473FD40724EF1B8700B8A7A0 /* filterable.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = filterable.html; sourceTree = "<group>"; };
+		473FD40924EF1BD000B8A7A0 /* FilterableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterableTests.swift; sourceTree = "<group>"; };
 		7913918E1B53B09F00BC07C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		792500AB1BA6CF6B0011671B /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		792500B71BA6CFBB0011671B /* FuziTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FuziTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -97,6 +103,7 @@
 				0C354A991D9633720005B0AD /* Node.swift */,
 				0C354A9A1D9633720005B0AD /* NodeSet.swift */,
 				0C354A9B1D9633720005B0AD /* Queryable.swift */,
+				473FD40524EF10A700B8A7A0 /* Filterable.swift */,
 				0C354A981D9633720005B0AD /* Info.plist */,
 			);
 			path = Sources;
@@ -127,6 +134,7 @@
 				799F461B1B90479F00E4CE2C /* AtomTests.swift */,
 				799F46271B904CE500E4CE2C /* XMLTests.swift */,
 				799F462F1B9454A100E4CE2C /* HTMLTests.swift */,
+				473FD40924EF1BD000B8A7A0 /* FilterableTests.swift */,
 				799F46321B9543A800E4CE2C /* CSSTests.swift */,
 				799F46341B95A64700E4CE2C /* DefaultNamespaceXPathTests.swift */,
 				799F46361B95B91D00E4CE2C /* VMAPTests.swift */,
@@ -144,6 +152,7 @@
 				792832DC1BA93DBF0063CC05 /* vmap.xml */,
 				792832DD1BA93DBF0063CC05 /* web.html */,
 				792832DE1BA93DBF0063CC05 /* xml.xml */,
+				473FD40724EF1B8700B8A7A0 /* filterable.html */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -206,7 +215,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 0710;
 				LastUpgradeCheck = 1020;
-				ORGANIZATIONNAME = "Ce Zheng";
+				ORGANIZATIONNAME = "Charles Hu";
 				TargetAttributes = {
 					792500AA1BA6CF6B0011671B = {
 						CreatedOnToolsVersion = 7.0;
@@ -249,6 +258,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				473FD40824EF1B8700B8A7A0 /* filterable.html in Resources */,
 				792832ED1BA93DC60063CC05 /* xml.xml in Resources */,
 				792832EB1BA93DC60063CC05 /* vmap.xml in Resources */,
 				792832EC1BA93DC60063CC05 /* web.html in Resources */,
@@ -269,6 +279,7 @@
 				0C354AA31D9633720005B0AD /* NodeSet.swift in Sources */,
 				0C354A9E1D9633720005B0AD /* Error.swift in Sources */,
 				0C354A9C1D9633720005B0AD /* Document.swift in Sources */,
+				473FD40624EF10A700B8A7A0 /* Filterable.swift in Sources */,
 				0C354AA01D9633720005B0AD /* Helpers.swift in Sources */,
 				0C354AA41D9633720005B0AD /* Queryable.swift in Sources */,
 			);
@@ -283,6 +294,7 @@
 				792500CD1BA6D0770011671B /* VMAPTests.swift in Sources */,
 				792500C81BA6D06B0011671B /* AtomTests.swift in Sources */,
 				792500CB1BA6D0730011671B /* CSSTests.swift in Sources */,
+				473FD40A24EF1BD000B8A7A0 /* FilterableTests.swift in Sources */,
 				792500CA1BA6D0700011671B /* HTMLTests.swift in Sources */,
 				792500CE1BA6D0790011671B /* XPathFunctionResultTests.swift in Sources */,
 			);
@@ -445,6 +457,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
+				PRODUCT_BUNDLE_IDENTIFIER = com.icharleshu.Fuzi;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -466,6 +479,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "-lxml2";
+				PRODUCT_BUNDLE_IDENTIFIER = com.icharleshu.Fuzi;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";

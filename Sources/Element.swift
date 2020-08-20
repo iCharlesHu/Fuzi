@@ -1,5 +1,6 @@
 // Element.swift
 // Copyright (c) 2015 Ce Zheng
+// Copyright (c) 2020 Charles Hu
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -101,6 +102,16 @@ open class XMLElement: XMLNode {
         }
     }
     
+    /// Returns the first child element
+    /// - Returns: The child element.
+    open func firstChild() -> XMLElement? {
+        let nodePtr = self.cNode.pointee.children
+        if let childNode = nodePtr {
+            return XMLElement(cNode: childNode, document: self.document)
+        }
+        return nil
+    }
+    
     /**
      Returns the first child element with a tag, or `nil` if no such element exists.
      
@@ -181,5 +192,20 @@ open class XMLElement: XMLNode {
      */
     open subscript (name: String) -> String? {
         return attr(name)
+    }
+    
+    // MARK: - Recusively Visit Nodes
+    internal func visit(_ perform: ((XMLElement) -> Bool)) {
+        self.visit(perform, on: self)
+    }
+    
+    private func visit(_ perform: ((XMLElement) -> Bool), on element: XMLElement) {
+        let shouldContinue: Bool = perform(element)
+        guard shouldContinue else {
+            return
+        }
+        for child: XMLElement in element.children {
+            self.visit(perform, on: child)
+        }
     }
 }
