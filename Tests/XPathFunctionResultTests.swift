@@ -23,27 +23,27 @@ import XCTest
 import Fuzi
 
 class XPathFunctionResultTests: XCTestCase {
-  var document: Fuzi.XMLDocument!
-  override func setUp() {
-    super.setUp()
-    let filePath = Bundle(for: AtomTests.self).url(forResource: "atom", withExtension: "xml")!
-    do {
-      document = try XMLDocument(data: Data(contentsOf: filePath))
-    } catch {
-      XCTAssertFalse(true, "Error should not be thrown")
+    var document: Fuzi.XMLDocument!
+    override func setUp() {
+        super.setUp()
+        let filePath = Bundle(for: AtomTests.self).url(forResource: "atom", withExtension: "xml")!
+        do {
+            document = try XMLDocument(data: Data(contentsOf: filePath))
+        } catch {
+            XCTAssertFalse(true, "Error should not be thrown")
+        }
+        document.definePrefix("atom", forNamespace: "http://www.w3.org/2005/Atom")
     }
-    document.definePrefix("atom", forNamespace: "http://www.w3.org/2005/Atom")
-  }
-  
-  func testFunctionResultBoolValue() {
-    XCTAssertTrue(document.root!.eval(xpath: "starts-with('Ono','O')")!.boolValue, "Result boolValue should be true")
-  }
-  
-  func testFunctionResultDoubleValue() {
-    XCTAssertEqual(document.root!.eval(xpath: "count(./atom:link)")!.doubleValue, 2, "Number of child links should be 2")
-  }
-  
-  func testFunctionResultStringValue() {
-    XCTAssertEqual(document.root!.eval(xpath: "string(./atom:entry[1]/dc:language[1]/text())")!.stringValue, "en-us", "Result stringValue should be `en-us`")
-  }
+    
+    func testFunctionResultBoolValue() {
+        XCTAssertTrue(document.root!.eval(xpath: "starts-with('Ono','O')")!.boolValue, "Result boolValue should be true")
+    }
+    
+    func testFunctionResultDoubleValue() {
+        XCTAssertEqual(document.root!.eval(xpath: "count(./atom:link)")!.doubleValue, 2, "Number of child links should be 2")
+    }
+    
+    func testFunctionResultStringValue() {
+        XCTAssertEqual(document.root!.eval(xpath: "string(./atom:entry[1]/dc:language[1]/text())")!.stringValue, "en-us", "Result stringValue should be `en-us`")
+    }
 }

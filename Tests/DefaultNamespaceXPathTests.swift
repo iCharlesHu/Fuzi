@@ -23,47 +23,47 @@ import XCTest
 import Fuzi
 
 class DefaultNamespaceXPathTests: XCTestCase {
-  var document: Fuzi.XMLDocument!
-  override func setUp() {
-    super.setUp()
-    let filePath = Bundle(for: DefaultNamespaceXPathTests.self).url(forResource: "ocf", withExtension: "xml")!
-    do {
-      document = try XMLDocument(data: Data(contentsOf: filePath))
-    } catch {
-      XCTAssertFalse(true, "Error should not be thrown")
+    var document: Fuzi.XMLDocument!
+    override func setUp() {
+        super.setUp()
+        let filePath = Bundle(for: DefaultNamespaceXPathTests.self).url(forResource: "ocf", withExtension: "xml")!
+        do {
+            document = try XMLDocument(data: Data(contentsOf: filePath))
+        } catch {
+            XCTAssertFalse(true, "Error should not be thrown")
+        }
     }
-  }
-  
-  func testAbsoluteXPathWithDefaultNamespace() {
-    document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
-    let xpath = "/ocf:container/ocf:rootfiles/ocf:rootfile"
-    var count = 0
-    for element in document.xpath(xpath) {
-      XCTAssertEqual("rootfile", element.tag, "tag should be `rootfile`")
-      count += 1
+    
+    func testAbsoluteXPathWithDefaultNamespace() {
+        document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
+        let xpath = "/ocf:container/ocf:rootfiles/ocf:rootfile"
+        var count = 0
+        for element in document.xpath(xpath) {
+            XCTAssertEqual("rootfile", element.tag, "tag should be `rootfile`")
+            count += 1
+        }
+        XCTAssertEqual(count, 1, "Element should be found at XPath \(xpath)")
     }
-    XCTAssertEqual(count, 1, "Element should be found at XPath \(xpath)")
-  }
-  
-  func testRelativeXPathWithDefaultNamespace() {
-    document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
-    let absoluteXPath = "/ocf:container/ocf:rootfiles"
-    let relativeXPath = "./ocf:rootfile"
-    var count = 0
-    for absoluteElement in document.xpath(absoluteXPath) {
-      for relativeElement in absoluteElement.xpath(relativeXPath) {
-        XCTAssertEqual("rootfile", relativeElement.tag, "tag should be rootfile")
-        count += 1
-      }
+    
+    func testRelativeXPathWithDefaultNamespace() {
+        document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
+        let absoluteXPath = "/ocf:container/ocf:rootfiles"
+        let relativeXPath = "./ocf:rootfile"
+        var count = 0
+        for absoluteElement in document.xpath(absoluteXPath) {
+            for relativeElement in absoluteElement.xpath(relativeXPath) {
+                XCTAssertEqual("rootfile", relativeElement.tag, "tag should be rootfile")
+                count += 1
+            }
+        }
+        XCTAssertEqual(count, 1, "Element should be found at XPath '\(relativeXPath)' relative to XPath '\(absoluteXPath)'")
     }
-    XCTAssertEqual(count, 1, "Element should be found at XPath '\(relativeXPath)' relative to XPath '\(absoluteXPath)'")
-  }
-  
-  func testDefaultNamespaceInChildNode() {
-    document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
-    document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
-    let results = document.xpath("/ocf:container/dc:metadata/dc:identifier")
-    XCTAssertEqual(results.map { $0.rawXML }, ["<identifier id=\"pub-id\">urn:uuid:pubid</identifier>"])
-    XCTAssertNil(results.first?.namespace, "The namespace should be empty because none is declared in the document")
-  }
+    
+    func testDefaultNamespaceInChildNode() {
+        document.definePrefix("ocf", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
+        document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
+        let results = document.xpath("/ocf:container/dc:metadata/dc:identifier")
+        XCTAssertEqual(results.map { $0.rawXML }, ["<identifier id=\"pub-id\">urn:uuid:pubid</identifier>"])
+        XCTAssertNil(results.first?.namespace, "The namespace should be empty because none is declared in the document")
+    }
 }

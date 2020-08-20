@@ -23,44 +23,44 @@ import XCTest
 import Fuzi
 
 class VMAPTests: XCTestCase {
-  var document: Fuzi.XMLDocument!
-  override func setUp() {
-    super.setUp()
-    let filePath = Bundle(for: VMAPTests.self).url(forResource: "vmap", withExtension: "xml")!
-    do {
-      document = try XMLDocument(data: Data(contentsOf: filePath))
-    } catch {
-      XCTAssertFalse(true, "Error should not be thrown")
+    var document: Fuzi.XMLDocument!
+    override func setUp() {
+        super.setUp()
+        let filePath = Bundle(for: VMAPTests.self).url(forResource: "vmap", withExtension: "xml")!
+        do {
+            document = try XMLDocument(data: Data(contentsOf: filePath))
+        } catch {
+            XCTAssertFalse(true, "Error should not be thrown")
+        }
     }
-  }
-  
-  func testAbsoluteXPathWithNamespace() {
-    let xpath = "/vmap:VMAP/vmap:Extensions/uo:unicornOnce"
-    var count = 0
-    for element in document.xpath(xpath) {
-      XCTAssertEqual("unicornOnce", element.tag, "tag should be `unicornOnce`")
-      count += 1
+    
+    func testAbsoluteXPathWithNamespace() {
+        let xpath = "/vmap:VMAP/vmap:Extensions/uo:unicornOnce"
+        var count = 0
+        for element in document.xpath(xpath) {
+            XCTAssertEqual("unicornOnce", element.tag, "tag should be `unicornOnce`")
+            count += 1
+        }
+        XCTAssertEqual(count, 1, "Element should be found at XPath '\(xpath)'")
     }
-    XCTAssertEqual(count, 1, "Element should be found at XPath '\(xpath)'")
-  }
-  
-  func testRelativeXPathWithNamespace() {
-   let absoluteXPath = "/vmap:VMAP/vmap:Extensions"
-    let relativeXPath = "./uo:unicornOnce"
-    var count = 0
-    for absoluteElement in document.xpath(absoluteXPath) {
-      for relativeElement in absoluteElement.xpath(relativeXPath) {
-        XCTAssertEqual("unicornOnce", relativeElement.tag, "tag should be `unicornOnce`")
-        count += 1
-      }
+    
+    func testRelativeXPathWithNamespace() {
+        let absoluteXPath = "/vmap:VMAP/vmap:Extensions"
+        let relativeXPath = "./uo:unicornOnce"
+        var count = 0
+        for absoluteElement in document.xpath(absoluteXPath) {
+            for relativeElement in absoluteElement.xpath(relativeXPath) {
+                XCTAssertEqual("unicornOnce", relativeElement.tag, "tag should be `unicornOnce`")
+                count += 1
+            }
+        }
+        XCTAssertEqual(count, 1, "Element should be found at XPath '\(relativeXPath)' relative to XPath '\(absoluteXPath)'");
     }
-    XCTAssertEqual(count, 1, "Element should be found at XPath '\(relativeXPath)' relative to XPath '\(absoluteXPath)'");
-  }
-  
-  func testUnicornOnceIsBlank() {
-    let xpath = "/vmap:VMAP/vmap:Extensions/uo:unicornOnce"
-    let element = document.firstChild(xpath: xpath)
-    XCTAssertNotNil(element, "Element should not be nil")
-    XCTAssertTrue(element!.isBlank, "Element should be blank")
-  }
+    
+    func testUnicornOnceIsBlank() {
+        let xpath = "/vmap:VMAP/vmap:Extensions/uo:unicornOnce"
+        let element = document.firstChild(xpath: xpath)
+        XCTAssertNotNil(element, "Element should not be nil")
+        XCTAssertTrue(element!.isBlank, "Element should be blank")
+    }
 }

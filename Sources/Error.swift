@@ -23,27 +23,27 @@ import Foundation
 import libxml2
 
 /**
-*  XMLError enumeration.
-*/
+ *  XMLError enumeration.
+ */
 public enum XMLError: Error {
-  /// No error
-  case noError
-  /// Contains a libxml2 error with error code and message
-  case libXMLError(code: Int, message: String)
-  /// Failed to convert String to bytes using given string encoding
-  case invalidData
-  /// XML Parser failed to parse the document
-  case parserFailure
-  /// XPath has either syntax error or some unknown/unsupported function
-  case xpathError(code: Int)
-  
-  internal static func lastError(defaultError: XMLError = .noError) -> XMLError {
-    guard let errorPtr = xmlGetLastError() else {
-      return defaultError
+    /// No error
+    case noError
+    /// Contains a libxml2 error with error code and message
+    case libXMLError(code: Int, message: String)
+    /// Failed to convert String to bytes using given string encoding
+    case invalidData
+    /// XML Parser failed to parse the document
+    case parserFailure
+    /// XPath has either syntax error or some unknown/unsupported function
+    case xpathError(code: Int)
+    
+    internal static func lastError(defaultError: XMLError = .noError) -> XMLError {
+        guard let errorPtr = xmlGetLastError() else {
+            return defaultError
+        }
+        let message = (^-^errorPtr.pointee.message)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let code = Int(errorPtr.pointee.code)
+        xmlResetError(errorPtr)
+        return .libXMLError(code: code, message: message ?? "")
     }
-    let message = (^-^errorPtr.pointee.message)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-    let code = Int(errorPtr.pointee.code)
-    xmlResetError(errorPtr)
-    return .libXMLError(code: code, message: message ?? "")
-  }
 }

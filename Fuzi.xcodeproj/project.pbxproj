@@ -220,11 +220,11 @@
 			};
 			buildConfigurationList = 791391771B53B09F00BC07C3 /* Build configuration list for PBXProject "Fuzi" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 791391731B53B09F00BC07C3;
 			productRefGroup = 7913917E1B53B09F00BC07C3 /* Products */;
