@@ -126,4 +126,59 @@ class HTMLTests: XCTestCase {
             child = child?.nextSibling
         }
     }
+    
+    func testCreateElement() {
+        let newElement: Fuzi.XMLElement = self.document.createElement(withTag: "div")
+        XCTAssert(newElement.tag == "div", "Newly created element doesn't have expected tag")
+    }
+    
+    func testSetAttribute() {
+        let body: Fuzi.XMLElement = self.document.body!
+        XCTAssertNil(body.attr("data-test-attr"))
+        body.setAttribute("data-test-attr", withValue: "DangerZone")
+        XCTAssertNotNil(body.attr("data-test-attr"))
+        XCTAssert(body.attr("data-test-attr") == "DangerZone", "Newly set attribute doesn't equal to the expected value")
+    }
+    
+    func testRemoveAttribute() {
+        let body: Fuzi.XMLElement = self.document.body!
+        body.setAttribute("data-test-attr", withValue: "DangerZone")
+        XCTAssertNotNil(body.attr("data-test-attr"))
+        body.removeAttribute("data-test-attr")
+        XCTAssertNil(body.attr("data-test-attr"))
+    }
+    
+    func testNumberOfChildren() {
+        let userLinks: Fuzi.XMLElement = self.document.getElementById("user-links")!
+        XCTAssert(userLinks.numberOfChildren() == 4, "numberOfChildren() returns incorrect value")
+    }
+    
+    func testAppendChild() {
+        let id: String = "data-new-element"
+        let body: Fuzi.XMLElement = self.document.body!
+        let newElement: Fuzi.XMLElement = self.document.createElement(withTag: "div")
+        newElement.setAttribute("id", withValue: id)
+        XCTAssertNil(body.getElementById(id)) // Before insert body shouldn't have this element
+        body.appendChild(newElement)
+        XCTAssertNotNil(body.getElementById(id)) // After insert body should now have this new element
+    }
+    
+    func testRemove() {
+        let body: Fuzi.XMLElement = self.document.body!
+        // Body should have readme
+        XCTAssertNotNil(body.getElementById("readme"))
+        let readme: Fuzi.XMLElement = body.getElementById("readme")!
+        readme.remove()
+        XCTAssertNil(body.getElementById("readme"))
+    }
+    
+    func testCopy() {
+        let body: Fuzi.XMLElement = self.document.body!
+        let bodyCopy: Fuzi.XMLElement = body.copy()
+        let readme: Fuzi.XMLElement = bodyCopy.getElementById("readme")!
+        readme.remove()
+        // Now the old body should still have readme whereas the new body shoudn't
+        XCTAssertNotNil(body.getElementById("readme"))
+        XCTAssertNil(bodyCopy.getElementById("readme"))
+    }
 }

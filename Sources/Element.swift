@@ -26,6 +26,15 @@ import libxml2
 /// Represents an element in `XMLDocument` or `HTMLDocument`
 open class XMLElement: XMLNode {
     
+    /// Whether this node is removed from parent. If `true`, the underlying cNode will be freed upon deinit
+    private var unlinked: Bool = false
+    
+    deinit {
+        if self.unlinked {
+            xmlFreeNode(self.cNode)
+        }
+    }
+    
     /// The element's namespace.
     open fileprivate(set) lazy var namespace: String? = {
         return ^-^(self.cNode.pointee.ns != nil ?self.cNode.pointee.ns.pointee.prefix :nil)
@@ -35,6 +44,10 @@ open class XMLElement: XMLNode {
     open fileprivate(set) lazy var tag: String? = {
         return ^-^self.cNode.pointee.name
     }()
+    
+    open var text: String {
+        return self.stringValue
+    }
     
     // MARK: - Accessing Attributes
     /// All attributes for the element.
@@ -73,6 +86,22 @@ open class XMLElement: XMLNode {
             xmlFree(xmlValue)
         }
         return value
+    }
+    
+    // MARK: - Updating Attributes
+    
+    /// Update the attribute with the given name on the element and create a new attribute if no attribute exists
+    /// - Parameters:
+    ///   - name: the name of the attribute to update/create
+    ///   - value: the value of the attribute to update/create
+    open func setAttribute(_ name: String, withValue value: String) {
+        xmlSetProp(self.cNode, name, value)
+    }
+    
+    /// Remove an attribute from the element
+    /// - Parameter name: the name of the attribute to remove
+    open func removeAttribute(_ name: String) {
+        xmlUnsetProp(self.cNode, name)
     }
     
     // MARK: - Accessing Children
@@ -156,6 +185,18 @@ open class XMLElement: XMLNode {
         return children(tag: tag, inNamespace: ns)
     }
     
+    /// Returns the current number of children elements.
+    /// - Returns: the number of children elements of this node.
+    open func numberOfChildren() -> Int {
+        return Int(xmlChildElementCount(self.cNode))
+    }
+    
+    // MARK: - Appending Child
+    open func appendChild(_ child: XMLElement) {
+        xmlAddChild(self.cNode, child.cNode)
+        child.unlinked = false
+    }
+    
     // MARK: - Accessing Content
     /// Whether the element has a value.
     open var isBlank: Bool {
@@ -194,8 +235,24 @@ open class XMLElement: XMLNode {
         return attr(name)
     }
     
+    // MARK: - Remove Self
+    open func remove() {
+        xmlUnlinkNode(self.cNode)
+        self.unlinked = true
+    }
+    
+    // MARK: - Copy Self
+    open func copy(recursive: Bool = true) -> XMLElement {
+        // @see http://www.xmlsoft.org/html/libxml-tree.html#xmlCopyNode
+        let flag: Int32 = recursive ? 1 : 2
+        let newNode: XMLElement = XMLElement(cNode: xmlCopyNode(self.cNode, flag), document: self.document)
+        // Copy doesn't set doc correctly... set it here
+        newNode.cNode.pointee.doc = self.cNode.pointee.doc
+        return newNode
+    }
+    
     // MARK: - Recusively Visit Nodes
-    internal func visit(_ perform: ((XMLElement) -> Bool)) {
+    open func visit(_ perform: ((XMLElement) -> Bool)) {
         self.visit(perform, on: self)
     }
     

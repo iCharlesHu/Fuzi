@@ -211,3 +211,10 @@ open class HTMLDocument: XMLDocument {
         return htmlReadMemory(buffer.baseAddress, Int32(buffer.count), "", nil, options)
     }
 }
+
+// MARK: Element Creation
+extension HTMLDocument {
+    open func createElement(withTag tag: String) -> XMLElement {
+        return XMLElement(cNode: xmlNewDocNode(self.cDocument, nil, tag, nil), document: self)
+    }
+}
