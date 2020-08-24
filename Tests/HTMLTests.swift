@@ -181,4 +181,21 @@ class HTMLTests: XCTestCase {
         XCTAssertNotNil(body.getElementById("readme"))
         XCTAssertNil(bodyCopy.getElementById("readme"))
     }
+    
+    func testReplaceChild() {
+        let body: Fuzi.XMLElement = self.document.body!
+        let newChild: Fuzi.XMLElement = self.document.createElement(withTag: "div")
+        newChild.setAttribute("id", withValue: "ladyfingers")
+        let readme: Fuzi.XMLElement! = body.getElementById("readme")
+        body.replaceChild(readme, with: newChild)
+        // Now body should no longer have a 'readme' element
+        XCTAssertNil(body.getElementById("readme"))
+        XCTAssertNotNil(body.getElementById("ladyfingers"))
+    }
+    
+    func testSetHtml() {
+        let body: Fuzi.XMLElement = self.document.body!
+        try! body.setHTML("<div><h1>HEY</h1></div>")
+        XCTAssert(body.html == "<div><h1>HEY</h1></div>", "setHTML() didn't update the HTML correctly")
+    }
 }

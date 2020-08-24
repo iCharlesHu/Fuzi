@@ -148,7 +148,7 @@ open class XMLNode {
         return self as? XMLElement
     }
     
-    internal let cNode: xmlNodePtr
+    internal var cNode: xmlNodePtr
     
     internal init(cNode: xmlNodePtr, document: XMLDocument) {
         self.cNode = cNode

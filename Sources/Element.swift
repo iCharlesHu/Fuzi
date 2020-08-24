@@ -197,6 +197,17 @@ open class XMLElement: XMLNode {
         child.unlinked = false
     }
     
+    // MARK: - Replacing Child
+    /// Replace the child with a new element
+    /// - Parameters:
+    ///   - old: the child to be replaced
+    ///   - new: the element to replace the child with
+    open func replaceChild(_ old: XMLElement, with new: XMLElement) {
+        xmlReplaceNode(old.cNode, new.cNode)
+        old.unlinked = true
+        new.unlinked = false
+    }
+    
     // MARK: - Accessing Content
     /// Whether the element has a value.
     open var isBlank: Bool {
@@ -264,5 +275,31 @@ open class XMLElement: XMLNode {
         for child: XMLElement in element.children {
             self.visit(perform, on: child)
         }
+    }
+    
+    // MARK: - Get / Set HTML
+    open var html: String {
+        return self.rawXML
+    }
+    
+    /// Replace the current element's HTML with the given one. This method parses the new HTML to construct the new node
+    /// - Parameter html: the new HTML string to replace
+    /// - Throws: `XMLError.invalidData` if the new HTML string is invalid
+    open func setHTML(_ html: String) throws {
+        // First we need to create a new document based on the html string
+        let newDoc: xmlDocPtr? = xmlReadMemory(html, Int32(html.count), nil, nil, 0)
+        guard newDoc != nil else {
+            throw XMLError.invalidData
+        }
+        let newNode: xmlNodePtr? = xmlDocCopyNode(xmlDocGetRootElement(newDoc), self.document.cDocument, 1)
+        guard newNode != nil else {
+            throw XMLError.invalidData
+        }
+        // Now we need to replace self with the new node
+        self.parent?.replaceChild(self, with: XMLElement(cNode: newNode!, document: self.document))
+        // Update the Element itself to the new node
+        xmlFreeNode(self.cNode)
+        self.cNode = newNode!
+        self.unlinked = false
     }
 }
