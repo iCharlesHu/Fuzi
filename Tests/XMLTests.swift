@@ -88,12 +88,6 @@ class XMLTests: XCTestCase {
         }
     }
     
-    func testLineNumber() {
-        let headerElement = document.root!.firstChild(tag: "header")
-        XCTAssertNotNil(headerElement, "header element should not be nil")
-        XCTAssertEqual(headerElement?.lineNumber, 123, "header line number should be correct")
-    }
-    
     func testThrowsError() {
         do {
             document = try XMLDocument(cChars: [CChar]())

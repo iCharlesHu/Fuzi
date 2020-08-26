@@ -36,14 +36,22 @@ open class XMLElement: XMLNode {
     }
     
     /// The element's namespace.
-    open fileprivate(set) lazy var namespace: String? = {
-        return ^-^(self.cNode.pointee.ns != nil ?self.cNode.pointee.ns.pointee.prefix :nil)
-    }()
+    @LazyOptional({ weakSelf in
+        guard let element: XMLElement = weakSelf as? XMLElement else {
+            return nil
+        }
+        return ^-^(element.cNode.pointee.ns != nil ?element.cNode.pointee.ns.pointee.prefix :nil)
+    })
+    public internal(set) var namespace: String?
     
     /// The element's tag.
-    open fileprivate(set) lazy var tag: String? = {
-        return ^-^self.cNode.pointee.name
-    }()
+    @LazyOptional({ weakSelf in
+        guard let element: XMLElement = weakSelf as? XMLElement else {
+            return nil
+        }
+        return ^-^element.cNode.pointee.name
+    })
+    public internal(set) var tag: String?
     
     open var text: String {
         return self.stringValue
@@ -51,17 +59,21 @@ open class XMLElement: XMLNode {
     
     // MARK: - Accessing Attributes
     /// All attributes for the element.
-    open fileprivate(set) lazy var attributes: [String : String] = {
+    @Lazy({ weakSelf in
+        guard let element: XMLElement = weakSelf as? XMLElement else {
+            return [:]
+        }
         var attributes = [String: String]()
-        var attribute = self.cNode.pointee.properties
+        var attribute = element.cNode.pointee.properties
         while attribute != nil {
-            if let key = ^-^attribute?.pointee.name, let value = self.attr(key) {
+            if let key = ^-^attribute?.pointee.name, let value = element.attr(key) {
                 attributes[key] = value
             }
             attribute = attribute?.pointee.next
         }
         return attributes
-    }()
+    })
+    public internal(set) var attributes: [String : String]!
     
     /**
      Returns the value for the attribute with the specified key.
@@ -96,12 +108,14 @@ open class XMLElement: XMLNode {
     ///   - value: the value of the attribute to update/create
     open func setAttribute(_ name: String, withValue value: String) {
         xmlSetProp(self.cNode, name, value)
+        self.attributes = nil // We need to clear out the cached value
     }
     
     /// Remove an attribute from the element
     /// - Parameter name: the name of the attribute to remove
     open func removeAttribute(_ name: String) {
         xmlUnsetProp(self.cNode, name)
+        self.attributes = nil // We need to clear out the cached value
     }
     
     // MARK: - Accessing Children
@@ -195,6 +209,14 @@ open class XMLElement: XMLNode {
     open func appendChild(_ child: XMLElement) {
         xmlAddChild(self.cNode, child.cNode)
         child.unlinked = false
+        // Update relationships
+        child.nextSibling = nil
+        child.previousSibling = nil
+        child.parent = nil
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.rawXML = nil
+            node.stringValue = nil
+        })
     }
     
     // MARK: - Replacing Child
@@ -206,6 +228,17 @@ open class XMLElement: XMLNode {
         xmlReplaceNode(old.cNode, new.cNode)
         old.unlinked = true
         new.unlinked = false
+        // Reset all lazy properties regarding siblings and parents
+        old.parent = nil
+        old.previousSibling = nil
+        old.nextSibling = nil
+        new.parent = nil
+        new.previousSibling = nil
+        new.nextSibling = nil
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.stringValue = nil
+            node.rawXML = nil
+        })
     }
     
     // MARK: - Accessing Content
@@ -223,6 +256,11 @@ open class XMLElement: XMLNode {
     open fileprivate(set) lazy var dateValue: Date? = {
         return self.document.dateFormatter.date(from: self.stringValue)
     }()
+    
+    // MARK: - Setting Content
+    open func setText(_ newText: String) {
+        self.setContent(newText)
+    }
     
     /**
      Returns the child element at the specified index.
@@ -250,6 +288,14 @@ open class XMLElement: XMLNode {
     open func remove() {
         xmlUnlinkNode(self.cNode)
         self.unlinked = true
+        // All parent's text and html needs to be reset
+        self.parent = nil
+        self.nextSibling = nil
+        self.previousSibling = nil
+        self.visitSelfAndAncestor { (node) in
+            node.stringValue = nil
+            node.rawXML = nil
+        }
     }
     
     // MARK: - Copy Self
@@ -301,5 +347,13 @@ open class XMLElement: XMLNode {
         xmlFreeNode(self.cNode)
         self.cNode = newNode!
         self.unlinked = false
+        // Setting the HTML on self means all parent's HTML dump and text dump are now invalid
+        self.tag = nil
+        self.namespace = nil
+        self.attributes = nil
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.rawXML = nil
+            node.stringValue = nil
+        })
     }
 }

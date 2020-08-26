@@ -18,6 +18,7 @@
 		473FD40624EF10A700B8A7A0 /* Filterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473FD40524EF10A700B8A7A0 /* Filterable.swift */; };
 		473FD40824EF1B8700B8A7A0 /* filterable.html in Resources */ = {isa = PBXBuildFile; fileRef = 473FD40724EF1B8700B8A7A0 /* filterable.html */; };
 		473FD40A24EF1BD000B8A7A0 /* FilterableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473FD40924EF1BD000B8A7A0 /* FilterableTests.swift */; };
+		47C089FA24F631EF002C62A5 /* Lazy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C089F924F631EF002C62A5 /* Lazy.swift */; };
 		792500BC1BA6CFBB0011671B /* Fuzi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792500AB1BA6CF6B0011671B /* Fuzi.framework */; };
 		792500C81BA6D06B0011671B /* AtomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799F461B1B90479F00E4CE2C /* AtomTests.swift */; };
 		792500C91BA6D06E0011671B /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799F46271B904CE500E4CE2C /* XMLTests.swift */; };
@@ -56,6 +57,7 @@
 		473FD40524EF10A700B8A7A0 /* Filterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filterable.swift; sourceTree = "<group>"; };
 		473FD40724EF1B8700B8A7A0 /* filterable.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = filterable.html; sourceTree = "<group>"; };
 		473FD40924EF1BD000B8A7A0 /* FilterableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterableTests.swift; sourceTree = "<group>"; };
+		47C089F924F631EF002C62A5 /* Lazy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lazy.swift; sourceTree = "<group>"; };
 		7913918E1B53B09F00BC07C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		792500AB1BA6CF6B0011671B /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		792500B71BA6CFBB0011671B /* FuziTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FuziTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +102,7 @@
 				0C354A951D9633720005B0AD /* Error.swift */,
 				0C354A961D9633720005B0AD /* Fuzi.h */,
 				0C354A971D9633720005B0AD /* Helpers.swift */,
+				47C089F924F631EF002C62A5 /* Lazy.swift */,
 				0C354A991D9633720005B0AD /* Node.swift */,
 				0C354A9A1D9633720005B0AD /* NodeSet.swift */,
 				0C354A9B1D9633720005B0AD /* Queryable.swift */,
@@ -281,6 +284,7 @@
 				0C354A9C1D9633720005B0AD /* Document.swift in Sources */,
 				473FD40624EF10A700B8A7A0 /* Filterable.swift in Sources */,
 				0C354AA01D9633720005B0AD /* Helpers.swift in Sources */,
+				47C089FA24F631EF002C62A5 /* Lazy.swift in Sources */,
 				0C354AA41D9633720005B0AD /* Queryable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

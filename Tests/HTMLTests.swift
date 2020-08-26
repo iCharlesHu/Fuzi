@@ -158,9 +158,11 @@ class HTMLTests: XCTestCase {
         let body: Fuzi.XMLElement = self.document.body!
         let newElement: Fuzi.XMLElement = self.document.createElement(withTag: "div")
         newElement.setAttribute("id", withValue: id)
+        XCTAssertNil(newElement.parent)
         XCTAssertNil(body.getElementById(id)) // Before insert body shouldn't have this element
         body.appendChild(newElement)
         XCTAssertNotNil(body.getElementById(id)) // After insert body should now have this new element
+        XCTAssert(newElement.parent == body)
     }
     
     func testRemove() {
@@ -187,15 +189,39 @@ class HTMLTests: XCTestCase {
         let newChild: Fuzi.XMLElement = self.document.createElement(withTag: "div")
         newChild.setAttribute("id", withValue: "ladyfingers")
         let readme: Fuzi.XMLElement! = body.getElementById("readme")
+        let prevSibing: Fuzi.XMLElement? = readme.previousSibling
+        let nextSibing: Fuzi.XMLElement? = readme.nextSibling
+        let parent: Fuzi.XMLElement? = readme.parent
+        XCTAssert(newChild.parent != parent)
+        XCTAssert(newChild.previousSibling != prevSibing)
+        XCTAssert(newChild.nextSibling != nextSibing)
         body.replaceChild(readme, with: newChild)
         // Now body should no longer have a 'readme' element
         XCTAssertNil(body.getElementById("readme"))
         XCTAssertNotNil(body.getElementById("ladyfingers"))
+        XCTAssert(newChild.parent == parent)
+        XCTAssert(newChild.previousSibling == prevSibing)
+        XCTAssert(newChild.nextSibling == nextSibing)
     }
     
     func testSetHtml() {
+        let html: String = "<div><h1>HEY</h1></div>"
         let body: Fuzi.XMLElement = self.document.body!
-        try! body.setHTML("<div><h1>HEY</h1></div>")
-        XCTAssert(body.html == "<div><h1>HEY</h1></div>", "setHTML() didn't update the HTML correctly")
+        XCTAssert(body.html != html)
+        XCTAssert(body.tag != "div")
+        XCTAssert(body.text != "HEY")
+        try! body.setHTML(html)
+        XCTAssert(body.html == html, "setHTML() didn't update the HTML correctly")
+        XCTAssert(body.tag == "div", "setHTML() didn't update the tag correctly")
+        XCTAssert(body.text == "HEY", "setHTML() didn't update the text correctly")
+    }
+    
+    func testSetContent() {
+        let text: String = "The Rules of Extraction"
+        let body: Fuzi.XMLElement = self.document.body!
+        let readme: Fuzi.XMLElement! = body.getElementById("readme")
+        XCTAssert(readme.text != text)
+        readme.setContent(text)
+        XCTAssert(readme.text == text, "setContent() didn't update content correctly")
     }
 }

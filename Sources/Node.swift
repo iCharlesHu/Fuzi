@@ -95,26 +95,33 @@ open class XMLNode {
         return cNode.pointee.type
     }
     
-    /// The element's line number.
-    open fileprivate(set) lazy var lineNumber: Int = {
-        return xmlGetLineNo(self.cNode)
-    }()
-    
     // MARK: - Accessing Parent and Sibling Elements
     /// The element's parent element.
-    open fileprivate(set) lazy var parent: XMLElement? = {
-        return XMLElement(cNode: self.cNode.pointee.parent, document: self.document)
-    }()
+    @LazyOptional({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return nil
+        }
+        return XMLElement(cNode: node.cNode.pointee.parent, document: node.document)
+    })
+    public internal(set) var parent: XMLElement?
     
     /// The element's previous sibling.
-    open fileprivate(set) lazy var previousSibling: XMLElement? = {
-        return XMLElement(cNode: self.cNode.pointee.prev, document: self.document)
-    }()
+    @LazyOptional({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return nil
+        }
+        return XMLElement(cNode: node.cNode.pointee.prev, document: node.document)
+    })
+    public internal(set) var previousSibling: XMLElement?
     
     /// The element's next sibling.
-    open fileprivate(set) lazy var nextSibling: XMLElement? = {
-        return XMLElement(cNode: self.cNode.pointee.next, document: self.document)
-    }()
+    @LazyOptional({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return nil
+        }
+        return XMLElement(cNode: node.cNode.pointee.next, document: node.document)
+    })
+    public internal(set) var nextSibling: XMLElement?
     
     // MARK: - Accessing Contents
     /// Whether this is a HTML node
@@ -123,25 +130,42 @@ open class XMLNode {
     }
     
     /// A string representation of the element's value.
-    open fileprivate(set) lazy var stringValue : String = {
-        let key = xmlNodeGetContent(self.cNode)
+    @Lazy({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return ""
+        }
+        let key = xmlNodeGetContent(node.cNode)
         let stringValue = ^-^key ?? ""
         xmlFree(key)
         return stringValue
-    }()
+    })
+    public internal(set) var stringValue: String!
     
     /// The raw XML string of the element.
-    open fileprivate(set) lazy var rawXML: String = {
+    @Lazy({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return ""
+        }
         let buffer = xmlBufferCreate()
-        if self.isHTML {
-            htmlNodeDump(buffer, self.cNode.pointee.doc, self.cNode)
+        if node.isHTML {
+            htmlNodeDump(buffer, node.cNode.pointee.doc, node.cNode)
         } else {
-            xmlNodeDump(buffer, self.cNode.pointee.doc, self.cNode, 0, 0)
+            xmlNodeDump(buffer, node.cNode.pointee.doc, node.cNode, 0, 0)
         }
         let dumped = ^-^xmlBufferContent(buffer) ?? ""
         xmlBufferFree(buffer)
         return dumped
-    }()
+    })
+    public internal(set) var rawXML: String!
+    
+    // MARK: - Setting Contents
+    open func setContent(_ newContent: String) {
+        let encoded: UnsafeMutablePointer<xmlChar> = xmlEncodeEntitiesReentrant(self.document.cDocument, newContent)
+        xmlNodeSetContent(self.cNode, encoded)
+        xmlFree(encoded)
+        // All parent's content must be invalided
+        self.visitSelfAndAncestor(andPerform: { node in node.stringValue = nil })
+    }
     
     /// Convert this node to XMLElement if it is an element node
     open func toElement() -> XMLElement? {
@@ -153,6 +177,7 @@ open class XMLNode {
     internal init(cNode: xmlNodePtr, document: XMLDocument) {
         self.cNode = cNode
         self.document = document
+        self.bindProperties()
     }
     
     internal convenience init?(cNode: xmlNodePtr?, document: XMLDocument) {
@@ -160,6 +185,25 @@ open class XMLNode {
             return nil
         }
         self.init(cNode: cNode, document: document)
+    }
+    
+    // MARK: - Bind Properties
+    internal func bindProperties() {
+        let allProperties: [Mirror.Child] = Mirror(reflecting: self).allChildren()
+        for child: Mirror.Child in allProperties {
+            if let wrapped: WrappedProperty = child.value as? WrappedProperty {
+                wrapped.owner = self
+            }
+        }
+    }
+    
+    // MARK: - Visit Ancestors
+    internal func visitSelfAndAncestor(andPerform perform: (XMLNode) -> Void) {
+        var currentNode: XMLNode? = self
+        while let current: XMLNode = currentNode {
+            perform(current)
+            currentNode = current.parent
+        }
     }
 }
 
