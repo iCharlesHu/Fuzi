@@ -45,13 +45,13 @@ open class XMLElement: XMLNode {
     public internal(set) var namespace: String?
     
     /// The element's tag.
-    @LazyOptional({ weakSelf in
+    @Lazy({ weakSelf in
         guard let element: XMLElement = weakSelf as? XMLElement else {
-            return nil
+            return ""
         }
-        return ^-^element.cNode.pointee.name
+        return ^-^element.cNode.pointee.name ?? ""
     })
-    public internal(set) var tag: String?
+    public internal(set) var tag: String!
     
     open var text: String {
         return self.stringValue
@@ -118,6 +118,13 @@ open class XMLElement: XMLNode {
         self.attributes = nil // We need to clear out the cached value
     }
     
+    /// Set (or reset) the tag of an element
+    /// - Parameter tag: the new tag to set
+    open func setTag(_ tag: String) {
+        xmlNodeSetName(self.cNode, tag)
+        self.tag = nil // Clear out cached value
+    }
+
     // MARK: - Accessing Children
     
     /// The element's children elements.
@@ -134,7 +141,7 @@ open class XMLElement: XMLNode {
      
      - returns: all children of specified types
      */
-    open func childNodes(ofTypes types: [XMLNodeType]) -> [XMLNode] {
+    open func childNodes(ofTypes types: [XMLNodeType] = [.Element, .Text]) -> [XMLNode] {
         return LinkedCNodes(head: cNode.pointee.children, types: types).compactMap { node in
             switch node.pointee.type {
             case XMLNodeType.Element:

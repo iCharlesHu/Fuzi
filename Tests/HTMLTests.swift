@@ -148,6 +148,14 @@ class HTMLTests: XCTestCase {
         XCTAssertNil(body.attr("data-test-attr"))
     }
     
+    func testSetTag() {
+        let body: Fuzi.XMLElement = self.document.body!
+        let readme: Fuzi.XMLElement = body.getElementById("readme")!
+        XCTAssert(readme.tag == "div")
+        readme.setTag("p")
+        XCTAssert(readme.tag == "p", "setTag() didn't correct update the element tag")
+    }
+
     func testNumberOfChildren() {
         let userLinks: Fuzi.XMLElement = self.document.getElementById("user-links")!
         XCTAssert(userLinks.numberOfChildren() == 4, "numberOfChildren() returns incorrect value")
