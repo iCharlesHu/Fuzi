@@ -90,6 +90,9 @@ open class XMLNode {
     /// The document containing the element.
     public unowned let document: XMLDocument
     
+    /// Whether this node is removed from parent. If `true`, the underlying cNode will be freed upon deinit
+    var unlinked: Bool = false
+    
     /// The type of the XMLNode
     open var type: XMLNodeType {
         return cNode.pointee.type
@@ -122,6 +125,78 @@ open class XMLNode {
         return XMLElement(cNode: node.cNode.pointee.next, document: node.document)
     })
     public internal(set) var nextSibling: XMLElement?
+    
+    // MARK: - Accessing Children Nodes
+    /// Determine whether the current node has any child nodes
+    /// - Returns: `true` if the current node has child nodes, `false` otherwise
+    open func hasChildNodes() -> Bool {
+        return self.cNode.pointee.next != nil
+    }
+    
+    /// Get the element's child nodes of specified types
+    /// - Parameter types: type of nodes that should be fetched (e.g. .Element, .Text, .Comment)
+    /// - Returns: all child nodes of specified types
+    open func childNodes(ofTypes types: [XMLNodeType] = [.Element, .Text]) -> [XMLNode] {
+        return LinkedCNodes(head: cNode.pointee.children, types: types).compactMap { node in
+            switch node.pointee.type {
+            case XMLNodeType.Element:
+                return XMLElement(cNode: node, document: self.document)
+            default:
+                return XMLNode(cNode: node, document: self.document)
+            }
+        }
+    }
+    
+    /// Returns the first child element
+    /// - Returns: The child element.
+    open func firstChild() -> XMLNode? {
+        let nodePtr = self.cNode.pointee.children
+        if let childNode = nodePtr {
+            switch childNode.pointee.type {
+            case XMLNodeType.Element:
+                return XMLElement(cNode: childNode, document: self.document)
+            default:
+                return XMLNode(cNode: childNode, document: self.document)
+            }
+        }
+        return nil
+    }
+    
+    // MARK: - Appending Child
+    open func appendChild(_ child: XMLNode) {
+        xmlAddChild(self.cNode, child.cNode)
+        child.unlinked = false
+        // Update relationships
+        child.nextSibling = nil
+        child.previousSibling = nil
+        child.parent = nil
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.rawXML = nil
+            node.stringValue = nil
+        })
+    }
+    
+    // MARK: - Replacing Child
+    /// Replace the child with a new element
+    /// - Parameters:
+    ///   - old: the child to be replaced
+    ///   - new: the element to replace the child with
+    open func replaceChild(_ old: XMLNode, with new: XMLNode) {
+        xmlReplaceNode(old.cNode, new.cNode)
+        old.unlinked = true
+        new.unlinked = false
+        // Reset all lazy properties regarding siblings and parents
+        old.parent = nil
+        old.previousSibling = nil
+        old.nextSibling = nil
+        new.parent = nil
+        new.previousSibling = nil
+        new.nextSibling = nil
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.stringValue = nil
+            node.rawXML = nil
+        })
+    }
     
     // MARK: - Accessing Contents
     /// Whether this is a HTML node
@@ -165,6 +240,32 @@ open class XMLNode {
         xmlFree(encoded)
         // All parent's content must be invalided
         self.visitSelfAndAncestor(andPerform: { node in node.stringValue = nil })
+    }
+    
+    // MARK: - Remove Self
+    open func remove() {
+        xmlUnlinkNode(self.cNode)
+        self.unlinked = true
+        // All parent's text and html needs to be reset
+        self.parent = nil
+        self.nextSibling = nil
+        self.previousSibling = nil
+        self.visitSelfAndAncestor { (node) in
+            node.stringValue = nil
+            node.rawXML = nil
+        }
+    }
+    
+    // MARK: - Copy Self
+    open func copy(recursive: Bool = true) -> XMLNode {
+        // @see http://www.xmlsoft.org/html/libxml-tree.html#xmlCopyNode
+        let flag: Int32 = recursive ? 1 : 2
+        let newNode: XMLNode = self.cNode.pointee.type == XMLNodeType.Element ?
+            XMLElement(cNode: xmlCopyNode(self.cNode, flag), document: self.document) :
+            XMLNode(cNode: xmlCopyNode(self.cNode, flag), document: self.document)
+        // Copy doesn't set doc correctly... set it here
+        newNode.cNode.pointee.doc = self.cNode.pointee.doc
+        return newNode
     }
     
     /// Convert this node to XMLElement if it is an element node

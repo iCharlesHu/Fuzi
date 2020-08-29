@@ -26,9 +26,6 @@ import libxml2
 /// Represents an element in `XMLDocument` or `HTMLDocument`
 open class XMLElement: XMLNode {
     
-    /// Whether this node is removed from parent. If `true`, the underlying cNode will be freed upon deinit
-    private var unlinked: Bool = false
-    
     deinit {
         if self.unlinked {
             xmlFreeNode(self.cNode)
@@ -135,31 +132,23 @@ open class XMLElement: XMLNode {
     }
     
     /**
-     Get the element's child nodes of specified types
+     Returns all children elements with the specified tag.
      
-     - parameter types: type of nodes that should be fetched (e.g. .Element, .Text, .Comment)
+     - parameter tag: The tag name.
+     - parameter ns:  The namepsace, or `nil` by default if not using a namespace
      
-     - returns: all children of specified types
+     - returns: The children elements.
      */
-    open func childNodes(ofTypes types: [XMLNodeType] = [.Element, .Text]) -> [XMLNode] {
-        return LinkedCNodes(head: cNode.pointee.children, types: types).compactMap { node in
-            switch node.pointee.type {
-            case XMLNodeType.Element:
-                return XMLElement(cNode: node, document: self.document)
-            default:
-                return XMLNode(cNode: node, document: self.document)
-            }
+    open func children(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> [XMLElement] {
+        return LinkedCNodes(head: cNode.pointee.children).compactMap {
+            cXMLNode($0, matchesTag: tag, inNamespace: ns)
+                ? XMLElement(cNode: $0, document: self.document) : nil
         }
     }
     
-    /// Returns the first child element
-    /// - Returns: The child element.
-    open func firstChild() -> XMLElement? {
-        let nodePtr = self.cNode.pointee.children
-        if let childNode = nodePtr {
-            return XMLElement(cNode: childNode, document: self.document)
-        }
-        return nil
+    /// faster version of children with string literals (explicitly typed as StaticString)
+    open func children(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> [XMLElement] {
+        return children(tag: tag, inNamespace: ns)
     }
     
     /**
@@ -186,66 +175,10 @@ open class XMLElement: XMLNode {
         return firstChild(tag: tag, inNamespace: ns)
     }
     
-    /**
-     Returns all children elements with the specified tag.
-     
-     - parameter tag: The tag name.
-     - parameter ns:  The namepsace, or `nil` by default if not using a namespace
-     
-     - returns: The children elements.
-     */
-    open func children(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> [XMLElement] {
-        return LinkedCNodes(head: cNode.pointee.children).compactMap {
-            cXMLNode($0, matchesTag: tag, inNamespace: ns)
-                ? XMLElement(cNode: $0, document: self.document) : nil
-        }
-    }
-    
-    /// faster version of children with string literals (explicitly typed as StaticString)
-    open func children(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> [XMLElement] {
-        return children(tag: tag, inNamespace: ns)
-    }
-    
     /// Returns the current number of children elements.
     /// - Returns: the number of children elements of this node.
     open func numberOfChildren() -> Int {
         return Int(xmlChildElementCount(self.cNode))
-    }
-    
-    // MARK: - Appending Child
-    open func appendChild(_ child: XMLElement) {
-        xmlAddChild(self.cNode, child.cNode)
-        child.unlinked = false
-        // Update relationships
-        child.nextSibling = nil
-        child.previousSibling = nil
-        child.parent = nil
-        self.visitSelfAndAncestor(andPerform: { node in
-            node.rawXML = nil
-            node.stringValue = nil
-        })
-    }
-    
-    // MARK: - Replacing Child
-    /// Replace the child with a new element
-    /// - Parameters:
-    ///   - old: the child to be replaced
-    ///   - new: the element to replace the child with
-    open func replaceChild(_ old: XMLElement, with new: XMLElement) {
-        xmlReplaceNode(old.cNode, new.cNode)
-        old.unlinked = true
-        new.unlinked = false
-        // Reset all lazy properties regarding siblings and parents
-        old.parent = nil
-        old.previousSibling = nil
-        old.nextSibling = nil
-        new.parent = nil
-        new.previousSibling = nil
-        new.nextSibling = nil
-        self.visitSelfAndAncestor(andPerform: { node in
-            node.stringValue = nil
-            node.rawXML = nil
-        })
     }
     
     // MARK: - Accessing Content
@@ -269,6 +202,11 @@ open class XMLElement: XMLNode {
         self.setContent(newText)
     }
     
+    // MARK: - Copy Self
+    open override func copy(recursive: Bool = true) -> XMLElement {
+        return super.copy() as! XMLElement
+    }
+    
     /**
      Returns the child element at the specified index.
      
@@ -289,30 +227,6 @@ open class XMLElement: XMLNode {
      */
     open subscript (name: String) -> String? {
         return attr(name)
-    }
-    
-    // MARK: - Remove Self
-    open func remove() {
-        xmlUnlinkNode(self.cNode)
-        self.unlinked = true
-        // All parent's text and html needs to be reset
-        self.parent = nil
-        self.nextSibling = nil
-        self.previousSibling = nil
-        self.visitSelfAndAncestor { (node) in
-            node.stringValue = nil
-            node.rawXML = nil
-        }
-    }
-    
-    // MARK: - Copy Self
-    open func copy(recursive: Bool = true) -> XMLElement {
-        // @see http://www.xmlsoft.org/html/libxml-tree.html#xmlCopyNode
-        let flag: Int32 = recursive ? 1 : 2
-        let newNode: XMLElement = XMLElement(cNode: xmlCopyNode(self.cNode, flag), document: self.document)
-        // Copy doesn't set doc correctly... set it here
-        newNode.cNode.pointee.doc = self.cNode.pointee.doc
-        return newNode
     }
     
     // MARK: - Recusively Visit Nodes
