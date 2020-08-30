@@ -48,7 +48,7 @@ class AtomTests: XCTestCase {
     }
     
     func testTitle() {
-        let titleElement = document.root!.firstChild(tag: "title")
+        let titleElement = document.root!.firstChildElement(tag: "title")
         XCTAssertNotNil(titleElement, "title element should not be nil")
         XCTAssertEqual(titleElement?.tag, "title", "tag should be `title`")
         XCTAssertEqual(titleElement?.stringValue, "Example Feed", "title string value should be 'Example Feed'")
@@ -69,7 +69,7 @@ class AtomTests: XCTestCase {
     }
     
     func testUpdated() {
-        let updatedElement = document.root!.firstChild(tag: "updated")
+        let updatedElement = document.root!.firstChildElement(tag: "updated")
         XCTAssertNotNil(updatedElement?.dateValue, "dateValue should not be nil")
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         let dateComponents = DateComponents(
@@ -103,10 +103,10 @@ class AtomTests: XCTestCase {
     }
     
     func testFirstChildInNameSpace() {
-        let entryElement = document.root!.firstChild(tag: "entry")
+        let entryElement = document.root!.firstChildElement(tag: "entry")
         XCTAssertNotNil(entryElement, "the element shouldn't be nil")
         
-        let namespacedElement = entryElement!.firstChild(tag: "language", inNamespace: "dc")
+        let namespacedElement = entryElement!.firstChildElement(tag: "language", inNamespace: "dc")
         XCTAssertNotNil(namespacedElement?.namespace, "the namespace shouldn't be nil")
         XCTAssertEqual(namespacedElement!.namespace, "dc", "Namespace should match")
         XCTAssertEqual(namespacedElement!.stringValue, "en-us", "value should match")

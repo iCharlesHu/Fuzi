@@ -194,17 +194,17 @@ open class HTMLDocument: XMLDocument {
     
     /// HTML title of current document
     open var title: String? {
-        return root?.firstChild(tag: "head")?.firstChild(tag: "title")?.stringValue
+        return root?.firstChildElement(tag: "head")?.firstChildElement(tag: "title")?.stringValue
     }
     
     /// HTML head element of current document
     open var head: XMLElement? {
-        return root?.firstChild(tag: "head")
+        return root?.firstChildElement(tag: "head")
     }
     
     /// HTML body element of current document
     open var body: XMLElement? {
-        return root?.firstChild(tag: "body")
+        return root?.firstChildElement(tag: "body")
     }
     
     fileprivate override class func parse(buffer: UnsafeBufferPointer<Int8>, options: Int32) -> xmlDocPtr? {

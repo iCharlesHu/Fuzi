@@ -49,7 +49,7 @@ class XMLTests: XCTestCase {
     }
     
     func testTitle() {
-        let titleElement = document.root!.firstChild(tag: "header")?.firstChild(tag: "title")
+        let titleElement = document.root!.firstChildElement(tag: "header")?.firstChildElement(tag: "title")
         XCTAssertNotNil(titleElement, "title element should not be nil")
         XCTAssertEqual(titleElement?.tag, "title", "tag should be `title`")
         XCTAssertEqual(titleElement?.stringValue, "Extensible Markup Language (XML)", "title string value should be 'Extensible Markup Language (XML)'")
@@ -100,7 +100,7 @@ class XMLTests: XCTestCase {
     }
     
     func testAuthorsByStaticTag() {
-        let authlistElement = document.root!.firstChild(staticTag: "header")?.firstChild(staticTag: "authlist")
+        let authlistElement = document.root!.firstChildElement(staticTag: "header")?.firstChildElement(staticTag: "authlist")
         XCTAssertNotNil(authlistElement, "authorlist element should not be nil")
         let authorElements = authlistElement?.children(staticTag: "author")
         XCTAssertEqual(authorElements?.count, 5, "should have 5 elements")

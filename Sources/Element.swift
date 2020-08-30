@@ -121,65 +121,6 @@ open class XMLElement: XMLNode {
         xmlNodeSetName(self.cNode, tag)
         self.tag = nil // Clear out cached value
     }
-
-    // MARK: - Accessing Children
-    
-    /// The element's children elements.
-    open var children: [XMLElement] {
-        return LinkedCNodes(head: cNode.pointee.children).compactMap {
-            XMLElement(cNode: $0, document: self.document)
-        }
-    }
-    
-    /**
-     Returns all children elements with the specified tag.
-     
-     - parameter tag: The tag name.
-     - parameter ns:  The namepsace, or `nil` by default if not using a namespace
-     
-     - returns: The children elements.
-     */
-    open func children(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> [XMLElement] {
-        return LinkedCNodes(head: cNode.pointee.children).compactMap {
-            cXMLNode($0, matchesTag: tag, inNamespace: ns)
-                ? XMLElement(cNode: $0, document: self.document) : nil
-        }
-    }
-    
-    /// faster version of children with string literals (explicitly typed as StaticString)
-    open func children(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> [XMLElement] {
-        return children(tag: tag, inNamespace: ns)
-    }
-    
-    /**
-     Returns the first child element with a tag, or `nil` if no such element exists.
-     
-     - parameter tag: The tag name.
-     - parameter ns:  The namespace, or `nil` by default if not using a namespace
-     
-     - returns: The child element.
-     */
-    open func firstChild(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> XMLElement? {
-        var nodePtr = cNode.pointee.children
-        while let cNode = nodePtr {
-            if cXMLNode(nodePtr, matchesTag: tag, inNamespace: ns) {
-                return XMLElement(cNode: cNode, document: self.document)
-            }
-            nodePtr = cNode.pointee.next
-        }
-        return nil
-    }
-    
-    /// faster version of firstChild with string literals (explicitly typed as StaticString)
-    open func firstChild(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> XMLElement? {
-        return firstChild(tag: tag, inNamespace: ns)
-    }
-    
-    /// Returns the current number of children elements.
-    /// - Returns: the number of children elements of this node.
-    open func numberOfChildren() -> Int {
-        return Int(xmlChildElementCount(self.cNode))
-    }
     
     // MARK: - Accessing Content
     /// Whether the element has a value.

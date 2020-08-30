@@ -123,7 +123,7 @@ class HTMLTests: XCTestCase {
     func testNextSiblingDoesNotCrash() {
         var child = document.root?.children.first
         while(child != nil) {
-            child = child?.nextSibling
+            child = child?.nextElementSibling
         }
     }
     
@@ -156,9 +156,9 @@ class HTMLTests: XCTestCase {
         XCTAssert(readme.tag == "p", "setTag() didn't correct update the element tag")
     }
 
-    func testNumberOfChildren() {
+    func testNumberOfChildrenElements() {
         let userLinks: Fuzi.XMLElement = self.document.getElementById("user-links")!
-        XCTAssert(userLinks.numberOfChildren() == 4, "numberOfChildren() returns incorrect value")
+        XCTAssert(userLinks.numberOfChildElements() == 4, "numberOfChildElements() returns incorrect value")
     }
     
     func testAppendChild() {
@@ -197,8 +197,8 @@ class HTMLTests: XCTestCase {
         let newChild: Fuzi.XMLElement = self.document.createElement(withTag: "div")
         newChild.setAttribute("id", withValue: "ladyfingers")
         let readme: Fuzi.XMLElement! = body.getElementById("readme")
-        let prevSibing: Fuzi.XMLElement? = readme.previousSibling
-        let nextSibing: Fuzi.XMLElement? = readme.nextSibling
+        let prevSibing: Fuzi.XMLNode? = readme.previousSibling
+        let nextSibing: Fuzi.XMLNode? = readme.nextSibling
         let parent: Fuzi.XMLElement? = readme.parent
         XCTAssert(newChild.parent != parent)
         XCTAssert(newChild.previousSibling != prevSibing)

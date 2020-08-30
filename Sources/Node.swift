@@ -108,29 +108,53 @@ open class XMLNode {
     })
     public internal(set) var parent: XMLElement?
     
-    /// The element's previous sibling.
+    /// The node's previous sibling.
     @LazyOptional({ weakSelf in
         guard let node: XMLNode = weakSelf as? XMLNode else {
             return nil
         }
-        return XMLElement(cNode: node.cNode.pointee.prev, document: node.document)
+        let sibling: xmlNodePtr? = node.cNode.pointee.prev
+        return sibling?.pointee.type == XMLNodeType.Element ?
+            XMLElement(cNode: sibling, document: node.document) :
+            XMLNode(cNode: sibling, document: node.document)
     })
-    public internal(set) var previousSibling: XMLElement?
+    public internal(set) var previousSibling: XMLNode?
     
-    /// The element's next sibling.
+    /// The node's previous element sibling
     @LazyOptional({ weakSelf in
         guard let node: XMLNode = weakSelf as? XMLNode else {
             return nil
         }
-        return XMLElement(cNode: node.cNode.pointee.next, document: node.document)
+        return XMLElement(cNode: xmlPreviousElementSibling(node.cNode), document: node.document)
     })
-    public internal(set) var nextSibling: XMLElement?
+    public internal(set) var previousElementSibling: XMLElement?
+    
+    /// The node's next sibling.
+    @LazyOptional({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode, node.cNode.pointee.next != nil else {
+            return nil
+        }
+        let sibling: xmlNodePtr? = node.cNode.pointee.next
+        return sibling?.pointee.type == XMLNodeType.Element ?
+            XMLElement(cNode: sibling, document: node.document) :
+            XMLNode(cNode: node.cNode.pointee.next, document: node.document)
+    })
+    public internal(set) var nextSibling: XMLNode?
+    
+    /// The node's next element sibling
+    @LazyOptional({ weakSelf in
+        guard let node: XMLNode = weakSelf as? XMLNode else {
+            return nil
+        }
+        return XMLElement(cNode: xmlNextElementSibling(node.cNode), document: node.document)
+    })
+    public internal(set) var nextElementSibling: XMLElement?
     
     // MARK: - Accessing Children Nodes
     /// Determine whether the current node has any child nodes
     /// - Returns: `true` if the current node has child nodes, `false` otherwise
     open func hasChildNodes() -> Bool {
-        return self.cNode.pointee.next != nil
+        return self.cNode.pointee.children != nil
     }
     
     /// Get the element's child nodes of specified types
@@ -149,7 +173,7 @@ open class XMLNode {
     
     /// Returns the first child element
     /// - Returns: The child element.
-    open func firstChild() -> XMLNode? {
+    open func firstChildNode() -> XMLNode? {
         let nodePtr = self.cNode.pointee.children
         if let childNode = nodePtr {
             switch childNode.pointee.type {
@@ -162,13 +186,110 @@ open class XMLNode {
         return nil
     }
     
+    /// Returns the number of child nodes of the current node
+    /// - Returns: The number of nodes that the current node has
+    open func numberOfChildNodes() -> Int {
+        var nodePtr: xmlNodePtr? = self.cNode.pointee.children
+        var count: Int = 0
+        while let node: xmlNodePtr = nodePtr {
+            count += 1
+            nodePtr = node.pointee.next
+        }
+        return count
+    }
+    
+    /// Determine wheter the current node has child elements
+    /// - Returns: `true` if the current node has child elements, or `false` otherwise.
+    open func hasChildElements() -> Bool {
+        var nodePtr: xmlNodePtr? = self.cNode.pointee.children
+        while let node: xmlNodePtr = nodePtr {
+            if node.pointee.type == XMLNodeType.Element {
+                return true
+            }
+            nodePtr = node.pointee.next
+        }
+        return false
+    }
+    
+    /// The element's children elements.
+    open var children: [XMLElement] {
+        return LinkedCNodes(head: cNode.pointee.children).compactMap {
+            XMLElement(cNode: $0, document: self.document)
+        }
+    }
+    
+    /**
+     Returns all children elements with the specified tag.
+     
+     - parameter tag: The tag name.
+     - parameter ns:  The namepsace, or `nil` by default if not using a namespace
+     
+     - returns: The children elements.
+     */
+    open func children(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> [XMLElement] {
+        return LinkedCNodes(head: cNode.pointee.children).compactMap {
+            cXMLNode($0, matchesTag: tag, inNamespace: ns)
+                ? XMLElement(cNode: $0, document: self.document) : nil
+        }
+    }
+    
+    /// faster version of children with string literals (explicitly typed as StaticString)
+    open func children(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> [XMLElement] {
+        return children(tag: tag, inNamespace: ns)
+    }
+    
+    /// Returns the first child element of any tag
+    /// - Returns: The first child element, or `nil` if none found.
+    open func firstChildElement() -> XMLElement? {
+        var nodePtr: xmlNodePtr? = self.cNode.pointee.children
+        while let node: xmlNodePtr = nodePtr {
+            if node.pointee.type == XMLNodeType.Element {
+                return XMLElement(cNode: node, document: self.document)
+            }
+            nodePtr = node.pointee.next
+        }
+        return nil
+    }
+    
+    /**
+     Returns the first child element with a tag, or `nil` if no such element exists.
+     
+     - parameter tag: The tag name.
+     - parameter ns:  The namespace, or `nil` by default if not using a namespace
+     
+     - returns: The child element.
+     */
+    open func firstChildElement(tag: XMLCharsComparable, inNamespace ns: XMLCharsComparable? = nil) -> XMLElement? {
+        var nodePtr = cNode.pointee.children
+        while let cNode = nodePtr {
+            if cXMLNode(nodePtr, matchesTag: tag, inNamespace: ns) {
+                return XMLElement(cNode: cNode, document: self.document)
+            }
+            nodePtr = cNode.pointee.next
+        }
+        return nil
+    }
+    
+    /// faster version of firstChild with string literals (explicitly typed as StaticString)
+    open func firstChildElement(staticTag tag: StaticString, inNamespace ns: StaticString? = nil) -> XMLElement? {
+        return firstChildElement(tag: tag, inNamespace: ns)
+    }
+    
+    /// Returns the current number of children elements.
+    /// - Returns: the number of children elements of this node.
+    open func numberOfChildElements() -> Int {
+        return Int(xmlChildElementCount(self.cNode))
+    }
+    
     // MARK: - Appending Child
     open func appendChild(_ child: XMLNode) {
         xmlAddChild(self.cNode, child.cNode)
         child.unlinked = false
         // Update relationships
         child.nextSibling = nil
+        child.nextElementSibling = nil
         child.previousSibling = nil
+        child.previousElementSibling = nil
         child.parent = nil
         self.visitSelfAndAncestor(andPerform: { node in
             node.rawXML = nil
@@ -188,10 +309,14 @@ open class XMLNode {
         // Reset all lazy properties regarding siblings and parents
         old.parent = nil
         old.previousSibling = nil
+        old.previousElementSibling = nil
         old.nextSibling = nil
+        old.nextElementSibling = nil
         new.parent = nil
         new.previousSibling = nil
+        new.previousElementSibling = nil
         new.nextSibling = nil
+        new.nextElementSibling = nil
         self.visitSelfAndAncestor(andPerform: { node in
             node.stringValue = nil
             node.rawXML = nil
@@ -249,7 +374,9 @@ open class XMLNode {
         // All parent's text and html needs to be reset
         self.parent = nil
         self.nextSibling = nil
+        self.nextElementSibling = nil
         self.previousSibling = nil
+        self.previousElementSibling = nil
         self.visitSelfAndAncestor { (node) in
             node.stringValue = nil
             node.rawXML = nil
