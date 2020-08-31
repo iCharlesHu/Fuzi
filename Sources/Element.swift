@@ -26,12 +26,6 @@ import libxml2
 /// Represents an element in `XMLDocument` or `HTMLDocument`
 open class XMLElement: XMLNode {
     
-    deinit {
-        if self.unlinked {
-            xmlFreeNode(self.cNode)
-        }
-    }
-    
     /// The element's namespace.
     @LazyOptional({ weakSelf in
         guard let element: XMLElement = weakSelf as? XMLElement else {
@@ -195,7 +189,12 @@ open class XMLElement: XMLNode {
     /// - Throws: `XMLError.invalidData` if the new HTML string is invalid
     open func setHTML(_ html: String) throws {
         // First we need to create a new document based on the html string
-        let newDoc: xmlDocPtr? = xmlReadMemory(html, Int32(html.count), nil, nil, 0)
+        let newDoc: xmlDocPtr? = htmlReadMemory(
+            html,
+            Int32(html.count),
+            nil,
+            nil,
+            Int32(HTML_PARSE_RECOVER.rawValue | HTML_PARSE_NOIMPLIED.rawValue))
         guard newDoc != nil else {
             throw XMLError.invalidData
         }
@@ -208,7 +207,6 @@ open class XMLElement: XMLNode {
         // Update the Element itself to the new node
         xmlFreeNode(self.cNode)
         self.cNode = newNode!
-        self.unlinked = false
         // Setting the HTML on self means all parent's HTML dump and text dump are now invalid
         self.tag = nil
         self.namespace = nil

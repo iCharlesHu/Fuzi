@@ -90,9 +90,6 @@ open class XMLNode {
     /// The document containing the element.
     public unowned let document: XMLDocument
     
-    /// Whether this node is removed from parent. If `true`, the underlying cNode will be freed upon deinit
-    var unlinked: Bool = false
-    
     /// The type of the XMLNode
     open var type: XMLNodeType {
         return cNode.pointee.type
@@ -283,18 +280,19 @@ open class XMLNode {
     
     // MARK: - Appending Child
     open func appendChild(_ child: XMLNode) {
-        xmlAddChild(self.cNode, child.cNode)
-        child.unlinked = false
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.rawXML = nil
+            node.stringValue = nil
+        })
         // Update relationships
         child.nextSibling = nil
         child.nextElementSibling = nil
         child.previousSibling = nil
         child.previousElementSibling = nil
         child.parent = nil
-        self.visitSelfAndAncestor(andPerform: { node in
-            node.rawXML = nil
-            node.stringValue = nil
-        })
+        // We need to free the node from the current context first before we append it to another context
+        xmlUnlinkNode(child.cNode)
+        xmlAddChild(self.cNode, child.cNode)
     }
     
     // MARK: - Replacing Child
@@ -303,9 +301,10 @@ open class XMLNode {
     ///   - old: the child to be replaced
     ///   - new: the element to replace the child with
     open func replaceChild(_ old: XMLNode, with new: XMLNode) {
-        xmlReplaceNode(old.cNode, new.cNode)
-        old.unlinked = true
-        new.unlinked = false
+        self.visitSelfAndAncestor(andPerform: { node in
+            node.stringValue = nil
+            node.rawXML = nil
+        })
         // Reset all lazy properties regarding siblings and parents
         old.parent = nil
         old.previousSibling = nil
@@ -317,10 +316,7 @@ open class XMLNode {
         new.previousElementSibling = nil
         new.nextSibling = nil
         new.nextElementSibling = nil
-        self.visitSelfAndAncestor(andPerform: { node in
-            node.stringValue = nil
-            node.rawXML = nil
-        })
+        xmlReplaceNode(old.cNode, new.cNode)
     }
     
     // MARK: - Accessing Contents
@@ -369,18 +365,17 @@ open class XMLNode {
     
     // MARK: - Remove Self
     open func remove() {
-        xmlUnlinkNode(self.cNode)
-        self.unlinked = true
+        self.visitSelfAndAncestor { (node) in
+            node.stringValue = nil
+            node.rawXML = nil
+        }
         // All parent's text and html needs to be reset
         self.parent = nil
         self.nextSibling = nil
         self.nextElementSibling = nil
         self.previousSibling = nil
         self.previousElementSibling = nil
-        self.visitSelfAndAncestor { (node) in
-            node.stringValue = nil
-            node.rawXML = nil
-        }
+        xmlUnlinkNode(self.cNode)
     }
     
     // MARK: - Copy Self
