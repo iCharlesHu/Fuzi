@@ -25,6 +25,10 @@ public protocol Filterable {
     /// - Parameter tag: the tag name to filter
     /// - Returns: the list of `XMLElement`s found
     func getElementsByTagName(_ tag: String) -> [XMLElement]
+    /// Returns a list of `XMLElement`s containing all descendant elements that has the tag name in the list of tag names, from the current element.
+    /// - Parameter names: the list of tag names to filter
+    /// - Returns: the list of `XMLElement`s found
+    func getElementsByTagNames(_ names: [String]) -> [XMLElement]
 }
 
 extension XMLElement : Filterable {
@@ -56,9 +60,14 @@ extension XMLElement : Filterable {
     }
     
     public func getElementsByTagName(_ tag: String) -> [XMLElement] {
+        return self.getElementsByTagNames([tag])
+    }
+    
+    public func getElementsByTagNames(_ tagNames: [String]) -> [XMLElement] {
+        let tagNameSet: Set<String> = Set(tagNames)
         var result: [XMLElement] = []
         self.visit { (element: XMLElement) -> Bool in
-            if let currentTag: String = element.tag, currentTag == tag {
+            if let currentTag: String = element.tag, tagNameSet.contains(currentTag) {
                 result.append(element)
             }
             return true
@@ -78,5 +87,9 @@ extension XMLDocument : Filterable {
     
     public func getElementsByTagName(_ tag: String) -> [XMLElement] {
         return self.root?.getElementsByTagName(tag) ?? []
+    }
+    
+    public func getElementsByTagNames(_ tagNames: [String]) -> [XMLElement] {
+        return self.root?.getElementsByTagNames(tagNames) ?? []
     }
 }

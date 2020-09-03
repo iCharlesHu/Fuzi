@@ -164,8 +164,8 @@ open class XMLElement: XMLNode {
         return attr(name)
     }
     
-    // MARK: - Recusively Visit Nodes
-    open func visit(_ perform: ((XMLElement) -> Bool)) {
+    // MARK: - Recusively Visit Elements
+    override open func visit(_ perform: ((XMLElement) -> Bool)) {
         self.visit(perform, on: self)
     }
     

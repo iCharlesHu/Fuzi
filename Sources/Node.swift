@@ -428,6 +428,21 @@ open class XMLNode {
             currentNode = current.parent
         }
     }
+    
+    // MARK: - Recusively Visit Nodes
+    open func visit(_ perform: ((XMLNode) -> Bool)) {
+        self.visit(perform, on: self)
+    }
+
+    private func visit(_ perform: ((XMLNode) -> Bool), on node: XMLNode) {
+        let shouldContinue: Bool = perform(node)
+        guard shouldContinue else {
+            return
+        }
+        for child: XMLNode in node.childNodes() {
+            self.visit(perform, on: child)
+        }
+    }
 }
 
 extension XMLNode: Equatable {}

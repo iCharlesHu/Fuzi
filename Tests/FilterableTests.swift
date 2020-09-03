@@ -37,4 +37,9 @@ class FilterableTests : XCTestCase {
         let metas: [Fuzi.XMLElement] = self.document.getElementsByTagName("meta")
         XCTAssert(metas.count == 13, "getElementsByTagName found incorrect number of elements")
     }
+    
+    func testGetElementsByTagNames() {
+        let metaAndLinks: [Fuzi.XMLElement] = self.document.getElementsByTagNames(["meta", "link"])
+        XCTAssert(metaAndLinks.count == 17, "getElementsByTagNames found incorrect number of elements")
+    }
 }
